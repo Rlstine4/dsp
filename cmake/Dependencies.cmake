@@ -1,27 +1,30 @@
 include(CPM)
 
+set(CPM_USE_LOCAL_PACKAGES ${USE_LOCAL_PACKAGES})
+
 CPMAddPackage(
-        NAME nlohmann_json
-        VERSION 3.9.1
-        GITHUB_REPOSITORY nlohmann/json
-        OPTIONS
-        "JSON_BuildTests OFF"
+    NAME expected
+    GITHUB_REPOSITORY TartanLlama/expected
+    GIT_TAG v1.3.1
+    OPTIONS
+        "EXPECTED_BUILD_TESTS OFF"
+        "EXPECTED_BUILD_PACKAGE OFF"
 )
 
 CPMAddPackage(
-        NAME matplotlib-cpp
-        VERSION 1.0.0
-        GIT_REPOSITORY https://github.com/lava/matplotlib-cpp.git
-        GIT_TAG master
-)
-
-CPMAddPackage(
-        NAME Catch2
-        VERSION 2.13.10
-        GITHUB_REPOSITORY catchorg/Catch2
-        OPTIONS
+    NAME Catch2
+    VERSION 2.13.10
+    GITHUB_REPOSITORY catchorg/Catch2
+    OPTIONS
         "CATCH_BUILD_TESTING OFF"
         "CATCH_BUILD_EXAMPLES OFF"
         "CATCH_BUILD_EXTRA_TESTS OFF"
         "CATCH_ENABLE_WERROR OFF"
+)
+
+CPMAddPackage(
+    NAME pocketfft
+    GIT_REPOSITORY https://github.com/mreineck/pocketfft.git
+    GIT_TAG c90e55b3d529f8efa40ed01a20de22405f45fc65
+    DOWNLOAD_ONLY YES
 )
