@@ -21,6 +21,7 @@ constexpr bool compile_time_smoke_test()
            (a * b).value() == 6.0 &&
            (b / a).value() == 1.5 &&
            (a * 2.0).value() == 4.0 &&
+           (2.0 * a).value() == 4.0 &&
            (b / 2.0).value() == 1.5 &&
            a.norm() == 4.0;
 }
@@ -51,6 +52,7 @@ TEST_CASE("Sample arithmetic", "[sample]")
     REQUIRE((a * b).value() == Approx(6.0));
     REQUIRE((b / a).value() == Approx(1.5));
     REQUIRE((a * 2.5).value() == Approx(5.0));
+    REQUIRE((2.5 * a).value() == Approx(5.0));
     REQUIRE((b / 2.0).value() == Approx(1.5));
 }
 
@@ -123,6 +125,10 @@ TEST_CASE("Sample complex arithmetic and conjugation", "[sample][complex]")
     const auto scaled = a * 2.0;
     REQUIRE(scaled.value().real() == Approx(2.0));
     REQUIRE(scaled.value().imag() == Approx(4.0));
+
+    const auto left_scaled = 2.0 * a;
+    REQUIRE(left_scaled.value().real() == Approx(2.0));
+    REQUIRE(left_scaled.value().imag() == Approx(4.0));
 
     const auto conjugated = a.conj();
     REQUIRE(conjugated.value().real() == Approx(1.0));

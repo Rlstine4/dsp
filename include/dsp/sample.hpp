@@ -1,7 +1,6 @@
 #pragma once
 
 #include <complex>
-#include <cstddef>
 #include <ostream>
 #include <type_traits>
 
@@ -29,14 +28,15 @@ namespace dsp
     class Sample
     {
     public:
-        using raw_value_type        = T;
-        using ref_type              = std::conditional_t<std::is_arithmetic_v<raw_value_type>, raw_value_type, raw_value_type&>;
-        using const_ref_type        = std::conditional_t<std::is_arithmetic_v<raw_value_type>, raw_value_type, const raw_value_type&>;
+        using value_type            = T;
+        using const_value_type      = const value_type;
+        using ref_type              = std::conditional_t<std::is_arithmetic_v<value_type>, value_type, value_type&>;
+        using const_ref_type        = std::conditional_t<std::is_arithmetic_v<value_type>, const_value_type, const_value_type&>;
 
-        using value_type            = raw_value_type;
-        using scalar_type           = typename detail::scalar_of<raw_value_type>::type;
+        using scalar_type           = typename detail::scalar_of<value_type>::type;
+        using const_scalar_type     = const scalar_type;
         using scalar_ref_type       = std::conditional_t<std::is_arithmetic_v<scalar_type>, scalar_type, scalar_type&>;
-        using scalar_const_ref_type = std::conditional_t<std::is_arithmetic_v<scalar_type>, scalar_type, const scalar_type&>;
+        using scalar_const_ref_type = std::conditional_t<std::is_arithmetic_v<scalar_type>, const_scalar_type, const_scalar_type&>;
 
         constexpr Sample() = default;
 
@@ -62,6 +62,11 @@ namespace dsp
         [[nodiscard]] constexpr Sample operator*(scalar_const_ref_type factor) const
         {
             return Sample{_value * factor};
+        }
+
+        [[nodiscard]] friend constexpr Sample operator*(scalar_const_ref_type factor, const Sample & sample)
+        {
+            return sample * factor;
         }
 
         [[nodiscard]] constexpr Sample operator/(const Sample & other) const
@@ -110,10 +115,7 @@ namespace dsp
             return *this;
         }
 
-        [[nodiscard]] constexpr bool operator==(const Sample & other) const
-        {
-            return _value == other._value;
-        }
+        [[nodiscard]] constexpr bool operator==(const Sample & other) const = default;
 
         friend std::ostream & operator<<(std::ostream & os, const Sample<T> & s)
         {
@@ -161,6 +163,6 @@ namespace dsp
         }
 
     private:
-        raw_value_type _value{};
+        value_type _value{};
     };
 }
