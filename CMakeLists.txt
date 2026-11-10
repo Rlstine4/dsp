@@ -17,7 +17,7 @@ option(OPTION_ASAN "Build with AddressSanitizer" OFF)
 option(BUILD_TESTING "Build the test targets" OFF)
 
 list(PREPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-include(dependencies)
+include(Dependencies)
 
 if(OPTION_ASAN)
     add_compile_options(-fsanitize=address)
