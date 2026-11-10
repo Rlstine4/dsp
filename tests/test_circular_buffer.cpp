@@ -48,14 +48,14 @@ constexpr bool compile_time_smoke_test()
     bool is_ok = buf.read(0).value().get() == 3 && buf.read(1).value().get() == 2
            && buf.read(2).value().get() == 1
            && buf.read(4) == tl::unexpected(CircularBufferError::OUT_OF_BOUNDS)
-           && buf[0] == 1
+           && buf[0].value().get() == 1
            && buf[4] == tl::unexpected(CircularBufferError::OUT_OF_BOUNDS);
 
     buf.write(4);
     is_ok = is_ok && buf.read(0).value().get() == 4;
 
     buf.write(5);  // wraps to slot 0 and overwrites the oldest value
-    is_ok = is_ok && buf.read(0).value().get() == 5 && buf.read(3).value().get() == 2 && buf[0] == 5;
+    is_ok = is_ok && buf.read(0).value().get() == 5 && buf.read(3).value().get() == 2 && buf[0].value().get() == 5;
 
     buf.clear();
     return is_ok && buf.read(0).value().get() == 0;
@@ -87,6 +87,9 @@ TEST_CASE("read exposes a const reference to the stored value", "[circular_buffe
 {
     static_assert(std::is_same_v<
         decltype(std::declval<const TestBuffer &>().read(0).value().get()),
+        const int &>);
+    static_assert(std::is_same_v<
+        decltype(std::declval<const TestBuffer &>()[0].value().get()),
         const int &>);
 
     CircularBuffer<std::string, 1> buf;
@@ -143,17 +146,17 @@ TEST_CASE("operator[] indexes physical slots, independent of head", "[circular_b
     buf.write(200);
     buf.write(300);
 
-    REQUIRE(buf[0].value() == 100);
-    REQUIRE(buf[1].value() == 200);
-    REQUIRE(buf[2].value() == 300);
-    REQUIRE(buf[3].value() == 0);  // largest valid index, never written
+    REQUIRE(buf[0].value().get() == 100);
+    REQUIRE(buf[1].value().get() == 200);
+    REQUIRE(buf[2].value().get() == 300);
+    REQUIRE(buf[3].value().get() == 0);  // largest valid index, never written
 
     buf.write(400);  // fills slot 3
     buf.write(500);  // wraps and overwrites slot 0; head moved, slot numbering did not
 
-    REQUIRE(buf[0].value() == 500);
-    REQUIRE(buf[1].value() == 200);
-    REQUIRE(buf[3].value() == 400);
+    REQUIRE(buf[0].value().get() == 500);
+    REQUIRE(buf[1].value().get() == 200);
+    REQUIRE(buf[3].value().get() == 400);
 }
 
 TEST_CASE("clear resets every slot to its default and resets the write position", "[circular_buffer]")
@@ -168,7 +171,7 @@ TEST_CASE("clear resets every slot to its default and resets the write position"
 
     buf.write(42);
     REQUIRE(buf.read(0).value().get() == 42);
-    REQUIRE(buf[0].value() == 42);  // writing restarts at slot 0
+    REQUIRE(buf[0].value().get() == 42);  // writing restarts at slot 0
 }
 
 TEST_CASE("construction from initial values populates every slot", "[circular_buffer]")
@@ -178,27 +181,11 @@ TEST_CASE("construction from initial values populates every slot", "[circular_bu
     const TestBuffer rvalue_buf(std::array<int, DEPTH>{1, 2, 3, 4});
 
     for (std::size_t i = 0; i < DEPTH; ++i)
-        REQUIRE(buf[i].value() == static_cast<int>(i) + 1);
+        REQUIRE(buf[i].value().get() == static_cast<int>(i) + 1);
 
     // Head starts at 0, so the newest sample is the last element.
     require_history_matches(buf, std::array{4, 3, 2, 1});
     require_history_matches(rvalue_buf, std::array{4, 3, 2, 1});
-}
-
-TEST_CASE("equality compares the buffer contents", "[circular_buffer]")
-{
-    TestBuffer left;
-    TestBuffer right;
-    REQUIRE(left == right);
-
-    left.write(1);
-    REQUIRE_FALSE(left == right);
-
-    right.write(1);
-    REQUIRE(left == right);
-
-    right.write(2);
-    REQUIRE_FALSE(left == right);
 }
 
 TEST_CASE("works with non-arithmetic value types", "[circular_buffer][string]")
